@@ -1,0 +1,11 @@
+- hosts: localhost
+  connection: local
+  gather_facts: yes
+
+  tasks:
+    - ansible.builtin.include_tasks: tasks/copy_dot_files.yaml
+    - ansible.builtin.include_tasks: tasks/install_packages.yaml
+
+# - Conda?
+#   - Git config: CS vs naicigam
+#   - Python conda environments: create

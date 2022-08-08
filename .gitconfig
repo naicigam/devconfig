@@ -1,6 +1,7 @@
 [user]
 	email = naicigam@gmail.com
 	name = Juan Manuel Alvarez
+	
 [credential]
 	helper = store
 

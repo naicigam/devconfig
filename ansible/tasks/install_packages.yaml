@@ -1,0 +1,41 @@
+- name: Ensure 1Password keys are downloaded
+  include_role:
+    name: jack1142.apt_signing_key
+  vars:
+    url: https://downloads.1password.com/linux/keys/1password.asc
+    key_name: 1password
+    key_id: 3FEF9748469ADBE15DA7CA80AC2D62742012EA22
+    dearmor: true
+
+- name: Ensure 1Password package repo is added
+  ansible.builtin.apt_repository:
+    filename: 1password
+    repo: 'deb [arch=amd64 signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/amd64 stable main'
+    update_cache: yes
+
+- name: Ensure deb packages are installed
+  become: yes
+  apt:
+    deb: https://packages.erlang-solutions.com/erlang-solutions_2.0_all.deb
+
+- name: Ensure Ubuntu packages are installed
+  become: yes
+  apt:
+    update_cache: yes
+    state: latest
+    pkg:
+      - tmux
+      - jq
+      - docker
+      - tree
+      - 1password
+      - esl-erlang
+      - elixir
+      # - vscode?
+      # - aws?
+
+- name: Ensure apt is cleaned up
+  become: yes
+  apt:
+    autoclean: yes
+    autoremove: yes

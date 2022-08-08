@@ -24,18 +24,6 @@ if [ -f /etc/bash_completion ] && ! shopt -oq posix; then
     . /usr/share/bash-completion/completions/git
 fi
 
-function_exists() {
-    declare -f -F $1 > /dev/null
-    return $?
-}
-
-for al in `__git_aliases`; do
-    alias g$al="git $al"
-
-    complete_func=_git_$(__git_aliased_command $al)
-    function_exists $complete_fnc && __git_complete g$al $complete_func
-done
-
 #-------------------------------------------------------------
 # Conda
 
@@ -82,7 +70,10 @@ alias dxdeploy='sfdx force:source:deploy'
 alias dxopen='sfdx force:org:open'
 alias dxlist='sfdx force:org:list'
 
-alias dxlogin=' sfdx force:auth:device:login'
+alias dxcreate='sfdx force:project:create --template empty --projectname'
+
+alias dxlogin='sfdx force:auth:device:login'
+alias dxloginsbx='sfdx force:auth:device:login -r https://test.salesforce.com'
 alias dxtest='sfdx force:apex:test:run --synchronous'
 alias dxlastlog='sfdx force:apex:log:get --number 1 --color | grep --line-buffered "USER_DEBUG"'
 
@@ -91,3 +82,36 @@ dxswitch() {
 }
 
 #-------------------------------------------------------------
+# Cumulus CI
+
+alias ccistart='conda_start && conda activate cumulusci'
+alias ccidev='cci flow run dev_org --org dev && dxswich SFC-Package__dev'
+alias cciinfo='cci org info --json'
+alias ccibeta='cci flow run ci_beta'
+
+#-------------------------------------------------------------
+# AWS
+
+login_aws () {
+  export AWS_PROFILE=
+  unset AWS_PROFILE
+  # check if an argument is given, if so assume it's a otp and skip asking 1pass
+  if [ -z "$1" ]; then
+    mfa_code="$(op item get --account CPJBZ244VNGFXACBSBQIC6VUI4 4vi75vaccsleyemkczkepdmje4 --field type=otp --format json | jq -r .totp)"
+  else
+    mfa_code="$1"
+  fi
+
+  session=$(aws sts get-session-token --serial-number 'arn:aws:iam::573927883898:mfa/juan@chapterspot.com' --duration-seconds=129600 --token-code="$mfa_code")
+
+  if [ $? -eq 0 ]; then
+    export AWS_PROFILE=mfa
+
+    aws configure set aws_access_key_id "$(echo $session | jq -r '.Credentials.AccessKeyId')"
+    aws configure set aws_secret_access_key "$(echo $session | jq -r '.Credentials'.SecretAccessKey)"
+    aws configure set aws_session_token "$(echo $session | jq -r '.Credentials.SessionToken')"
+  else
+    echo "FAILED!"
+    false
+  fi
+}
